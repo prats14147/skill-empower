@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ dashboard_type }} Dashboard - SkillEmpower</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+            color: #333;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .search-container {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            padding: 0.5rem;
+            margin: 0 1rem;
+            flex: 1;
+            max-width: 300px;
+        }
+
+        .search-input {
+            background: transparent;
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            width: 100%;
+            outline: none;
+        }
+
+        .search-input::placeholder {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .search-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .search-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .categories-container {
+            position: relative;
+            margin-left: 1rem;
+        }
+
+        .categories-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .categories-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .categories-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            padding: 1rem;
+            min-width: 200px;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+
+        .categories-dropdown.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .category-item {
+            display: block;
+            padding: 0.75rem 1rem;
+            color: #333;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: background 0.3s ease;
+            margin-bottom: 0.25rem;
+        }
+
+        .category-item:hover {
+            background: #f8f9fa;
+            color: #667eea;
+        }
+
+        .category-item.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: white;
+        }
+
+        .user-role {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .main-content {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .welcome-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            margin-bottom: 2rem;
+        }
+
+        .welcome-title {
+            font-size: 2rem;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .welcome-subtitle {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .dashboard-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            color: #333;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .card-content {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .action-btn:hover {
+            background: #5a6fd8;
+        }
+
+        .action-btn.secondary {
+            background: #6c757d;
+        }
+
+        .action-btn.secondary:hover {
+            background: #5a6268;
+        }
+
+        /* Responsive design for mobile */
+        @media (max-width: 768px) {
+            .navbar-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .search-container {
+                margin: 0;
+                max-width: 100%;
+            }
+            
+            .categories-container {
+                margin: 0;
+                width: 100%;
+            }
+            
+            .categories-btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .user-info {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-content">
+            <div class="logo">SkillEmpower</div>
+            
+            <div class="search-container">
+                <input type="text" class="search-input" placeholder="Search for courses..." id="courseSearch">
+                <button class="search-btn" onclick="searchCourses()">Search</button>
+            </div>
+            
+            <div class="categories-container">
+                <button class="categories-btn" onclick="toggleCategories()">
+                    📚 Categories
+                    <span>▼</span>
+                </button>
+                <div class="categories-dropdown" id="categoriesDropdown">
+                    <a href="#" class="category-item" data-category="all">All Categories</a>
+                    <a href="#" class="category-item" data-category="programming">Programming</a>
+                    <a href="#" class="category-item" data-category="web-development">Web Development</a>
+                    <a href="#" class="category-item" data-category="data-science">Data Science</a>
+                    <a href="#" class="category-item" data-category="mobile-development">Mobile Development</a>
+                    <a href="#" class="category-item" data-category="design">Design</a>
+                    <a href="#" class="category-item" data-category="business">Business</a>
+                    <a href="#" class="category-item" data-category="marketing">Marketing</a>
+                </div>
+            </div>
+            
+            <div class="user-info">
+                <span>Welcome, {{ request.user.username }}!</span>
+                <span class="user-role">{{ dashboard_type }}</span>
+                <a href="{% url 'logout' %}" class="logout-btn">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        <div class="welcome-section">
+            <h1 class="welcome-title">Welcome to your {{ dashboard_type }} Dashboard!</h1>
+            <p class="welcome-subtitle">Manage your learning journey and track your progress</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">0</div>
+                <div class="stat-label">Courses Enrolled</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">0</div>
+                <div class="stat-label">Completed Lessons</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">0</div>
+                <div class="stat-label">Certificates Earned</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">0</div>
+                <div class="stat-label">Hours Learned</div>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            {% if dashboard_type == 'Learner' %}
+            <div class="dashboard-card">
+                <h3 class="card-title">My Courses</h3>
+                <p class="card-content">Browse and enroll in new courses to enhance your skills.</p>
+                <div class="quick-actions">
+                    <a href="#" class="action-btn">Browse Courses</a>
+                    <a href="#" class="action-btn secondary">My Progress</a>
+                </div>
+            </div>
+
+            <div class="dashboard-card">
+                <h3 class="card-title">Learning Path</h3>
+                <p class="card-content">Follow personalized learning paths designed for your goals.</p>
+                <div class="quick-actions">
+                    <a href="#" class="action-btn">View Path</a>
+                    <a href="#" class="action-btn secondary">Set Goals</a>
+                </div>
+            </div>
+
+            <div class="dashboard-card">
+                <h3 class="card-title">Certificates</h3>
+                <p class="card-content">Track your achievements and download certificates.</p>
+                <div class="quick-actions">
+                    <a href="#" class="action-btn">View Certificates</a>
+                    <a href="#" class="action-btn secondary">Share Achievement</a>
+                </div>
+            </div>
+            {% else %}
+            <div class="dashboard-card">
+                <h3 class="card-title">Course Management</h3>
+                <p class="card-content">Create and manage your courses for learners.</p>
+                <div class="quick-actions">
+                    <a href="#" class="action-btn">Create Course</a>
+                    <a href="#" class="action-btn secondary">Manage Courses</a>
+                </div>
+            </div>
+
+            <div class="dashboard-card">
+                <h3 class="card-title">Student Analytics</h3>
+                <p class="card-content">Track student progress and engagement metrics.</p>
+                <div class="quick-actions">
+                    <a href="#" class="action-btn">View Analytics</a>
+                    <a href="#" class="action-btn secondary">Generate Reports</a>
+                </div>
+            </div>
+
+            <div class="dashboard-card">
+                <h3 class="card-title">Content Library</h3>
+                <p class="card-content">Manage your teaching materials and resources.</p>
+                <div class="quick-actions">
+                    <a href="#" class="action-btn">Upload Content</a>
+                    <a href="#" class="action-btn secondary">Organize Library</a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        function searchCourses() {
+            const searchTerm = document.getElementById('courseSearch').value.trim();
+            if (searchTerm) {
+                window.location.href = `{% url 'course_search' %}?q=${encodeURIComponent(searchTerm)}`;
+            } else {
+                window.location.href = "{% url 'course_search' %}";
+            }
+        }
+
+        function toggleCategories() {
+            const dropdown = document.getElementById('categoriesDropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('categoriesDropdown');
+            const categoriesBtn = event.target.closest('.categories-btn');
+            
+            if (!categoriesBtn && dropdown.classList.contains('show')) {
+                dropdown.classList.remove('show');
+            }
+        });
+
+        // Handle category selection
+        document.querySelectorAll('.category-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                const category = this.getAttribute('data-category');
+                
+                // Remove active class from all items
+                document.querySelectorAll('.category-item').forEach(i => i.classList.remove('active'));
+                
+                // Add active class to selected item
+                this.classList.add('active');
+                
+                // Close dropdown
+                document.getElementById('categoriesDropdown').classList.remove('show');
+                
+                // Navigate to course search with category filter
+                if (category === 'all') {
+                    window.location.href = "{% url 'course_search' %}";
+                } else {
+                    window.location.href = `{% url 'course_search' %}?category=${encodeURIComponent(category)}`;
+                }
+            });
+        });
+
+        // Allow search on Enter key press
+        document.getElementById('courseSearch').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchCourses();
+            }
+        });
+    </script>
+</body>
+</html> 

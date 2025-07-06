@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Search - SkillEmpower</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+            color: #333;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .search-container {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            padding: 0.5rem;
+            margin: 0 1rem;
+            flex: 1;
+            max-width: 300px;
+        }
+
+        .search-input {
+            background: transparent;
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            width: 100%;
+            outline: none;
+        }
+
+        .search-input::placeholder {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .search-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .search-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .categories-container {
+            position: relative;
+            margin-left: 1rem;
+        }
+
+        .categories-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .categories-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .categories-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            padding: 1rem;
+            min-width: 200px;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+
+        .categories-dropdown.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .category-item {
+            display: block;
+            padding: 0.75rem 1rem;
+            color: #333;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: background 0.3s ease;
+            margin-bottom: 0.25rem;
+        }
+
+        .category-item:hover {
+            background: #f8f9fa;
+            color: #667eea;
+        }
+
+        .category-item.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: white;
+        }
+
+        .user-role {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .main-content {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .search-header {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            margin-bottom: 2rem;
+        }
+
+        .search-title {
+            font-size: 2rem;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .search-subtitle {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .results-count {
+            color: #667eea;
+            font-weight: 600;
+            margin-top: 1rem;
+        }
+
+        .active-filters {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-badge {
+            background: #667eea;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .clear-filter {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .courses-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        .course-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .course-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .course-image {
+            height: 200px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3rem;
+            font-weight: bold;
+        }
+
+        .course-content {
+            padding: 1.5rem;
+        }
+
+        .course-title {
+            font-size: 1.25rem;
+            color: #333;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .course-description {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .course-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .course-instructor {
+            font-weight: 500;
+            color: #667eea;
+        }
+
+        .course-stats {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .rating {
+            color: #ffc107;
+            font-weight: 600;
+        }
+
+        .level-badge {
+            background: #667eea;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .category-badge {
+            background: #28a745;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-left: 0.5rem;
+        }
+
+        .enroll-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: transform 0.2s ease;
+            font-weight: 600;
+        }
+
+        .enroll-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+        }
+
+        .no-results h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .back-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: background 0.3s ease;
+            font-weight: 600;
+        }
+
+        .back-btn:hover {
+            background: #5a6268;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .navbar-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .search-container {
+                margin: 0;
+                max-width: 100%;
+            }
+            
+            .categories-container {
+                margin: 0;
+                width: 100%;
+            }
+            
+            .categories-btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .user-info {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .courses-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-content">
+            <a href="{% url 'dashboard' %}" class="logo">SkillEmpower</a>
+            
+            <div class="search-container">
+                <input type="text" class="search-input" placeholder="Search for courses..." id="courseSearch" value="{{ query }}">
+                <button class="search-btn" onclick="searchCourses()">Search</button>
+            </div>
+            
+            <div class="categories-container">
+                <button class="categories-btn" onclick="toggleCategories()">
+                    📚 Categories
+                    <span>▼</span>
+                </button>
+                <div class="categories-dropdown" id="categoriesDropdown">
+                    <a href="#" class="category-item {% if not category %}active{% endif %}" data-category="all">All Categories</a>
+                    <a href="#" class="category-item {% if category == 'programming' %}active{% endif %}" data-category="programming">Programming</a>
+                    <a href="#" class="category-item {% if category == 'web-development' %}active{% endif %}" data-category="web-development">Web Development</a>
+                    <a href="#" class="category-item {% if category == 'data-science' %}active{% endif %}" data-category="data-science">Data Science</a>
+                    <a href="#" class="category-item {% if category == 'mobile-development' %}active{% endif %}" data-category="mobile-development">Mobile Development</a>
+                    <a href="#" class="category-item {% if category == 'design' %}active{% endif %}" data-category="design">Design</a>
+                    <a href="#" class="category-item {% if category == 'business' %}active{% endif %}" data-category="business">Business</a>
+                    <a href="#" class="category-item {% if category == 'marketing' %}active{% endif %}" data-category="marketing">Marketing</a>
+                </div>
+            </div>
+            
+            <div class="user-info">
+                <span>Welcome, {{ request.user.username }}!</span>
+                <span class="user-role">Learner</span>
+                <a href="{% url 'dashboard' %}" class="nav-btn">Dashboard</a>
+                <a href="{% url 'logout' %}" class="nav-btn">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        <div class="search-header">
+            <h1 class="search-title">
+                {% if query or category %}
+                    {% if query and category %}
+                        Search Results for "{{ query }}" in {{ category_name }}
+                    {% elif query %}
+                        Search Results for "{{ query }}"
+                    {% elif category %}
+                        {{ category_name }} Courses
+                    {% endif %}
+                {% else %}
+                    All Courses
+                {% endif %}
+            </h1>
+            <p class="search-subtitle">
+                {% if query or category %}
+                    Found {{ total_results }} course{{ total_results|pluralize }} matching your criteria
+                {% else %}
+                    Browse our collection of courses
+                {% endif %}
+            </p>
+            <div class="results-count">{{ total_results }} course{{ total_results|pluralize }} available</div>
+            
+            {% if query or category %}
+            <div class="active-filters">
+                {% if query %}
+                <div class="filter-badge">
+                    Search: "{{ query }}"
+                    <button class="clear-filter" onclick="clearSearch()">×</button>
+                </div>
+                {% endif %}
+                {% if category %}
+                <div class="filter-badge">
+                    Category: {{ category_name }}
+                    <button class="clear-filter" onclick="clearCategory()">×</button>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+
+        {% if courses %}
+        <div class="courses-grid">
+            {% for course in courses %}
+            <div class="course-card">
+                <div class="course-image">
+                    {{ course.title|slice:":1" }}
+                </div>
+                <div class="course-content">
+                    <h3 class="course-title">{{ course.title }}</h3>
+                    <p class="course-description">{{ course.description }}</p>
+                    
+                    <div class="course-meta">
+                        <span class="course-instructor">{{ course.instructor }}</span>
+                        <div>
+                            <span class="level-badge">{{ course.level }}</span>
+                            <span class="category-badge">{{ course.category|title }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="course-stats">
+                        <div class="stat">
+                            <span class="rating">★ {{ course.rating }}</span>
+                        </div>
+                        <div class="stat">
+                            📚 {{ course.duration }}
+                        </div>
+                        <div class="stat">
+                            👥 {{ course.students }} students
+                        </div>
+                    </div>
+                    
+                    <a href="#" class="enroll-btn">Enroll Now</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="no-results">
+            <h3>No courses found</h3>
+            <p>Try adjusting your search terms or browse all available courses.</p>
+            <a href="{% url 'course_search' %}" class="back-btn">View All Courses</a>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        function searchCourses() {
+            const searchTerm = document.getElementById('courseSearch').value.trim();
+            const currentCategory = '{{ category }}';
+            
+            let url = "{% url 'course_search' %}?";
+            const params = [];
+            
+            if (searchTerm) {
+                params.push(`q=${encodeURIComponent(searchTerm)}`);
+            }
+            
+            if (currentCategory && currentCategory !== 'all') {
+                params.push(`category=${encodeURIComponent(currentCategory)}`);
+            }
+            
+            window.location.href = url + params.join('&');
+        }
+
+        function toggleCategories() {
+            const dropdown = document.getElementById('categoriesDropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        function clearSearch() {
+            const currentCategory = '{{ category }}';
+            let url = "{% url 'course_search' %}";
+            
+            if (currentCategory && currentCategory !== 'all') {
+                url += `?category=${encodeURIComponent(currentCategory)}`;
+            }
+            
+            window.location.href = url;
+        }
+
+        function clearCategory() {
+            const searchTerm = '{{ query }}';
+            let url = "{% url 'course_search' %}";
+            
+            if (searchTerm) {
+                url += `?q=${encodeURIComponent(searchTerm)}`;
+            }
+            
+            window.location.href = url;
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('categoriesDropdown');
+            const categoriesBtn = event.target.closest('.categories-btn');
+            
+            if (!categoriesBtn && dropdown.classList.contains('show')) {
+                dropdown.classList.remove('show');
+            }
+        });
+
+        // Handle category selection
+        document.querySelectorAll('.category-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                const category = this.getAttribute('data-category');
+                const searchTerm = '{{ query }}';
+                
+                let url = "{% url 'course_search' %}?";
+                const params = [];
+                
+                if (searchTerm) {
+                    params.push(`q=${encodeURIComponent(searchTerm)}`);
+                }
+                
+                if (category !== 'all') {
+                    params.push(`category=${encodeURIComponent(category)}`);
+                }
+                
+                window.location.href = url + params.join('&');
+            });
+        });
+
+        // Allow search on Enter key press
+        document.getElementById('courseSearch').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchCourses();
+            }
+        });
+    </script>
+</body>
+</html> 
