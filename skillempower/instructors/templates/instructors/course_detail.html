@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ course.title }}</title>
+</head>
+<body>
+    <h2>{{ course.title }}</h2>
+    <p>{{ course.description }}</p>
+    <h3>Lessons</h3>
+    <ul>
+        {% for lesson in lessons %}
+            <li>Lesson {{ lesson.lesson_no }}: {{ lesson.title }}</li>
+        {% empty %}
+            <li>No lessons yet.</li>
+        {% endfor %}
+    </ul>
+    <a href="{% url 'instructors:add_lesson' course.id %}">Add Lesson</a>
+</body>
+</html> 

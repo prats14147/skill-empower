@@ -1,12 +1,61 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm
-from .forms import UserRegistrationForm
-from .models import Profile
+from .forms import UserRegistrationForm, ProfileForm, CertificateUploadForm
+from .models import Profile, BookmarkedCourse, Certificate, UserLessonProgress
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.http import JsonResponse, HttpResponseRedirect
 from django.views.decorators.http import require_http_methods
+from instructors.models import Video, Course, Lesson, AssignmentSubmission
+from django.urls import reverse
+from django.shortcuts import render, redirect
+
+@login_required
+def profile_view(request):
+    profile = request.user.profile
+    certificates = Certificate.objects.filter(user=request.user)
+
+    form = ProfileForm(instance=profile)
+    certificate_form = CertificateUploadForm()
+
+    if request.method == 'POST':
+        if 'update_profile' in request.POST:
+            form = ProfileForm(request.POST, request.FILES, instance=profile)
+            if form.is_valid():
+                form.save()
+                messages.success(request, 'Your profile was successfully updated!')
+                return redirect('profile')
+            else:
+                messages.error(request, 'Please correct the error below.')
+        elif 'upload_certificate' in request.POST:
+            certificate_form = CertificateUploadForm(request.POST, request.FILES)
+            if certificate_form.is_valid():
+                certificate = certificate_form.save(commit=False)
+                certificate.user = request.user
+                certificate.save()
+                messages.success(request, 'Certificate uploaded successfully!')
+                return redirect('profile')
+            else:
+                messages.error(request, 'Please correct the error below.')
+
+    # Fetch user-specific data for the right side of the dashboard
+    courses_taken = Course.objects.filter(instructor=request.user).count() # Assuming courses taken means courses created by instructor
+    lessons_completed_count = UserLessonProgress.objects.filter(user=request.user).count()
+    completed_lessons = UserLessonProgress.objects.filter(user=request.user).select_related('lesson', 'lesson__course').order_by('-completed_at')[:5] # Get last 5 completed lessons
+    certificates_earned = Certificate.objects.filter(user=request.user).count()
+
+    context = {
+        'form': form,
+        'certificate_form': certificate_form,
+        'profile': profile,
+        'courses_taken': courses_taken,
+        'lessons_completed_count': lessons_completed_count,
+        'certificates_earned': certificates_earned,
+        'completed_lessons': completed_lessons,
+        'certificates': certificates,
+    }
+    return render(request, 'core/profile.html', context)
 
 # Create your views here.
 
@@ -64,146 +113,80 @@ def dashboard_view(request):
         profile = Profile.objects.get(user=request.user)
         if profile.role == 'learner':
             dashboard_type = 'Learner'
+            categories = [
+                ('agro-based', 'Agro-based'),
+                ('handicraft', 'Handicraft'),
+                ('basic computer', 'Basic computer'),
+                ('local food', 'Local Food'),
+                ('design', 'Design & Fashion'),
+                ('business', 'Business'),
+                ('marketing', 'Marketing'),
+            ]
         else:
             dashboard_type = 'Instructor/Admin'
+            categories = []
     except Profile.DoesNotExist:
         # Create profile if it doesn't exist (for backward compatibility)
         profile = Profile.objects.create(user=request.user, role='learner')
         dashboard_type = 'Learner'
-    
-    return render(request, 'core/dashboard.html', {'dashboard_type': dashboard_type})
+        categories = [
+            ('all', 'All Categories'),
+            ('programming', 'Programming'),
+            ('web-development', 'Web Development'),
+            ('data-science', 'Data Science'),
+            ('mobile-development', 'Mobile Development'),
+            ('design', 'Design'),
+            ('business', 'Business'),
+            ('marketing', 'Marketing'),
+        ]
+    return render(request, 'core/dashboard.html', {'dashboard_type': dashboard_type, 'categories': categories})
 
 # Course Search View
 @login_required
 def course_search_view(request):
     query = request.GET.get('q', '').strip()
     category = request.GET.get('category', '').strip()
-    
-    # Mock course data with categories - in a real application, this would come from a database
-    mock_courses = [
-        {
-            'id': 1,
-            'title': 'Python Programming for Beginners',
-            'description': 'Learn Python from scratch with hands-on projects',
-            'instructor': 'Dr. Sarah Johnson',
-            'duration': '8 weeks',
-            'level': 'Beginner',
-            'rating': 4.8,
-            'students': 1250,
-            'category': 'programming'
-        },
-        {
-            'id': 2,
-            'title': 'Advanced Web Development',
-            'description': 'Master modern web development with React and Node.js',
-            'instructor': 'Prof. Michael Chen',
-            'duration': '12 weeks',
-            'level': 'Advanced',
-            'rating': 4.9,
-            'students': 890,
-            'category': 'web-development'
-        },
-        {
-            'id': 3,
-            'title': 'Data Science Fundamentals',
-            'description': 'Introduction to data analysis and machine learning',
-            'instructor': 'Dr. Emily Rodriguez',
-            'duration': '10 weeks',
-            'level': 'Intermediate',
-            'rating': 4.7,
-            'students': 2100,
-            'category': 'data-science'
-        },
-        {
-            'id': 4,
-            'title': 'Mobile App Development',
-            'description': 'Build iOS and Android apps with Flutter',
-            'instructor': 'Alex Thompson',
-            'duration': '14 weeks',
-            'level': 'Intermediate',
-            'rating': 4.6,
-            'students': 750,
-            'category': 'mobile-development'
-        },
-        {
-            'id': 5,
-            'title': 'UI/UX Design Masterclass',
-            'description': 'Create beautiful and functional user interfaces',
-            'instructor': 'Lisa Wang',
-            'duration': '6 weeks',
-            'level': 'Beginner',
-            'rating': 4.5,
-            'students': 1200,
-            'category': 'design'
-        },
-        {
-            'id': 6,
-            'title': 'Digital Marketing Strategy',
-            'description': 'Learn modern marketing techniques and strategies',
-            'instructor': 'David Kim',
-            'duration': '8 weeks',
-            'level': 'Intermediate',
-            'rating': 4.4,
-            'students': 950,
-            'category': 'marketing'
-        },
-        {
-            'id': 7,
-            'title': 'Business Analytics',
-            'description': 'Transform data into business insights',
-            'instructor': 'Maria Garcia',
-            'duration': '10 weeks',
-            'level': 'Advanced',
-            'rating': 4.6,
-            'students': 680,
-            'category': 'business'
-        },
-        {
-            'id': 8,
-            'title': 'JavaScript Fundamentals',
-            'description': 'Master JavaScript programming from basics to advanced',
-            'instructor': 'John Smith',
-            'duration': '9 weeks',
-            'level': 'Beginner',
-            'rating': 4.7,
-            'students': 1800,
-            'category': 'programming'
-        }
-    ]
-    
-    # Filter courses based on search query and category
-    filtered_courses = mock_courses
-    
-    # Apply category filter
+
+    # Fetch videos from the database
+    videos = Video.objects.all()
     if category and category != 'all':
-        filtered_courses = [course for course in filtered_courses if course['category'] == category]
-    
-    # Apply text search filter
+        videos = videos.filter(category=category)
     if query:
-        filtered_courses = [
-            course for course in filtered_courses
-            if query.lower() in course['title'].lower() or 
-               query.lower() in course['description'].lower() or
-               query.lower() in course['instructor'].lower()
-        ]
-    
-    # Category mapping for display
-    category_names = {
-        'programming': 'Programming',
-        'web-development': 'Web Development',
-        'data-science': 'Data Science',
-        'mobile-development': 'Mobile Development',
-        'design': 'Design',
-        'business': 'Business',
-        'marketing': 'Marketing'
-    }
-    
+        videos = videos.filter(title__icontains=query)
+
+    # Get bookmarked video IDs for the current user
+    bookmarked_ids = set()
+    if request.user.is_authenticated:
+        bookmarked_ids = set(BookmarkedCourse.objects.filter(user=request.user).values_list('video_id', flat=True))
+    request.user.bookmarked_ids = bookmarked_ids
+
+    dashboard_type = 'Learner' if request.user.profile.role == 'learner' else 'Instructor/Admin'
+
     context = {
-        'courses': filtered_courses,
+        'courses': videos,
         'query': query,
         'category': category,
-        'category_name': category_names.get(category, 'All Categories'),
-        'total_results': len(filtered_courses)
+        'category_name': category,
+        'total_results': videos.count(),
+        'dashboard_type': dashboard_type,
     }
-    
     return render(request, 'core/course_search.html', context)
+
+@login_required
+def bookmarked_videos_view(request):
+    # Get all bookmarked video IDs for this user
+    bookmarked_ids = BookmarkedCourse.objects.filter(user=request.user).values_list('video_id', flat=True)
+    videos = Video.objects.filter(id__in=bookmarked_ids)
+    request.user.bookmarked_ids = set(bookmarked_ids)
+    context = {
+        'courses': videos,
+        'total_results': videos.count(),
+        'dashboard_type': 'Learner' if request.user.profile.role == 'learner' else 'Instructor/Admin',
+    }
+    return render(request, 'core/bookmarked_videos.html', context)
+
+@login_required
+def bookmark_video_view(request, video_id):
+    if request.method == 'POST':
+        BookmarkedCourse.objects.get_or_create(user=request.user, video_id=video_id)
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER', reverse('course_search')))

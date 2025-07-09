@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
-from .models import Profile
+from .models import Profile, Certificate
 
 class UserRegistrationForm(UserCreationForm):
     email = forms.EmailField(
@@ -56,4 +56,28 @@ class UserRegistrationForm(UserCreationForm):
             user.save()
             # Create profile
             Profile.objects.create(user=user, role=self.cleaned_data['role'])
-        return user 
+        return user
+
+class ProfileForm(forms.ModelForm):
+    class Meta:
+        model = Profile
+        fields = ['specialization', 'age', 'email', 'avatar']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name in self.fields:
+            self.fields[field_name].widget.attrs.update({
+                'class': 'form-control'
+            })
+
+class CertificateUploadForm(forms.ModelForm):
+    class Meta:
+        model = Certificate
+        fields = ['title', 'file']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name in self.fields:
+            self.fields[field_name].widget.attrs.update({
+                'class': 'form-control'
+            })

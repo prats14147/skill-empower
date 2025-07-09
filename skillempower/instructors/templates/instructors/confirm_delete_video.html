@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Confirm Delete Video</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f8f9fa; color: #333; }
+        .container { max-width: 400px; margin: 4rem auto; background: #fff; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.07); padding: 2rem; text-align: center; }
+        button, a { margin: 1rem 0.5rem; padding: 0.7rem 1.5rem; border-radius: 8px; font-size: 1rem; font-weight: 600; text-decoration: none; }
+        button { background: #d9534f; color: white; border: none; cursor: pointer; }
+        a { background: #6c757d; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Are you sure you want to delete "{{ video.title }}"?</h2>
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit">Yes, delete</button>
+            <a href="{% url 'instructors:uploads_dashboard' %}">Cancel</a>
+        </form>
+    </div>
+</body>
+</html> 
