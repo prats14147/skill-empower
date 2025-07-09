@@ -13,22 +13,14 @@ def is_instructor(user):
 @login_required
 @user_passes_test(is_instructor)
 def video_upload_view(request):
-    # Use the same categories as learners, but remove 'local food'
-    categories = [
-        ('agro-based', 'Agro-based'),
-        ('handicraft', 'Handicraft'),
-        ('basic computer', 'Basic computer'),
-        # ('local food', 'Local Food'),  # Removed as requested
-        ('design', 'Design & Fashion'),
-        ('business', 'Business'),
-        ('marketing', 'Marketing'),
-    ]
-    selected_category = None
+    selected_category = request.GET.get('category')
+    courses = Course.objects.filter(instructor=request.user)
     category_courses = []
+    if selected_category:
+        category_courses = courses.filter(category=selected_category)
 
-    # Handle course creation
     if request.method == 'POST' and 'create_course' in request.POST:
-        course_form = CourseForm(request.POST)
+        course_form = CourseForm(request.POST, request.FILES)
         if course_form.is_valid():
             course = course_form.save(commit=False)
             course.instructor = request.user
@@ -38,35 +30,11 @@ def video_upload_view(request):
     else:
         course_form = CourseForm()
 
-    # Handle category selection
-    selected_category_id = request.GET.get('category')
-    if selected_category_id:
-        selected_category = selected_category_id
-        category_courses = Course.objects.filter(instructor=request.user, category__name=selected_category_id)
-
-    # Handle lesson creation for any course in the selected category
-    if request.method == 'POST' and 'add_lesson' in request.POST:
-        lesson_form = LessonForm(request.POST, request.FILES)
-        course_id = request.POST.get('course_id')
-        if lesson_form.is_valid() and course_id:
-            try:
-                course = Course.objects.get(id=course_id, instructor=request.user)
-                lesson = lesson_form.save(commit=False)
-                lesson.course = course
-                lesson.save()
-                messages.success(request, 'Lesson added successfully!')
-                return redirect(f'{request.path}?category={course.category.name}')
-            except Course.DoesNotExist:
-                messages.error(request, 'Course not found or not authorized.')
-    else:
-        lesson_form = LessonForm()
-
     context = {
         'course_form': course_form,
-        'categories': categories,
-        'selected_category': selected_category,
         'category_courses': category_courses,
-        'lesson_form': lesson_form,
+        'selected_category': selected_category,
+        'categories': Course.CATEGORY_CHOICES,
     }
     return render(request, 'instructors/instructor_video_upload.html', context)
 

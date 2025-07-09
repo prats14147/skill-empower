@@ -31,56 +31,46 @@
                 {% endfor %}
             </div>
         {% endif %}
+        
         <div class="section">
             <h3>Create a New Course</h3>
-            <form method="post">
+            <form method="post" enctype="multipart/form-data">
                 {% csrf_token %}
                 {{ course_form.as_p }}
                 <button type="submit" name="create_course" class="submit-btn">Create Course</button>
             </form>
         </div>
         <div class="section">
-            <h3>Select Category to View/Add Courses</h3>
+            <h3>Select Category to View Courses</h3>
             <form method="get">
-                <label for="category">Choose Category:</label>
+                <label for="category">Select Category:</label>
                 <select name="category" id="category" onchange="this.form.submit()">
-                    <option value="">-- Select Category --</option>
+                    <option value="">--Choose--</option>
                     {% for value, label in categories %}
                         <option value="{{ value }}" {% if selected_category == value %}selected{% endif %}>{{ label }}</option>
                     {% endfor %}
                 </select>
             </form>
         </div>
-        {% if selected_category %}
+        {% if category_courses %}
         <div class="section">
-            <h3>Courses in {{ selected_category.name }}</h3>
+            <h3>Courses in {{ selected_category }}</h3>
             <ul>
                 {% for course in category_courses %}
                     <li>
-                        <strong>{{ course.title }}</strong> - {{ course.description }}
-                        <form method="post" enctype="multipart/form-data" style="margin-top: 0.5rem;">
-                            {% csrf_token %}
-                            {{ lesson_form.as_p }}
-                            <input type="hidden" name="course_id" value="{{ course.id }}">
-                            <button type="submit" name="add_lesson" class="submit-btn">Add Lesson</button>
-                        </form>
-                        <div class="lesson-list">
-                            <h4>Lessons</h4>
-                            <ul>
-                                {% for lesson in course.lessons.all %}
-                                    <li>Lesson {{ lesson.lesson_no }}: {{ lesson.title }}</li>
-                                {% empty %}
-                                    <li>No lessons yet.</li>
-                                {% endfor %}
-                            </ul>
-                        </div>
+                        <strong>{{ course.title }}</strong><br>
+                        {{ course.description }}<br>
+                        {% if course.video %}
+                            <video width="320" height="240" controls>
+                                <source src="{{ course.video.url }}" type="video/mp4">
+                                Your browser does not support the video tag.
+                            </video>
+                        {% endif %}
                     </li>
-                {% empty %}
-                    <li>No courses in this category yet.</li>
                 {% endfor %}
             </ul>
         </div>
         {% endif %}
     </div>
 </body>
-</html> 
+</html>

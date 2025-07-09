@@ -9,9 +9,9 @@ class VideoUploadForm(forms.ModelForm):
 class CourseForm(forms.ModelForm):
     class Meta:
         model = Course
-        fields = ['title', 'description', 'category']
+        fields = ['title', 'description', 'video', 'category']
 
 class LessonForm(forms.ModelForm):
     class Meta:
         model = Lesson
-        fields = ['title', 'lesson_no', 'video', 'pdf_notes', 'assignment_description', 'assignment_link'] 
+        fields = ['title', 'lesson_no', 'video', 'pdf_notes', 'assignment_description', 'assignment_link']

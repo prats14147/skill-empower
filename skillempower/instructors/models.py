@@ -29,11 +29,21 @@ class Category(models.Model):
         return self.name
 
 class Course(models.Model):
+    CATEGORY_CHOICES = [
+        ('agro-based', 'Agro-based'),
+        ('handicraft', 'Handicraft'),
+        ('basic computer', 'Basic computer'),
+        ('design', 'Design & Fashion'),
+        ('business', 'Business'),
+        ('marketing', 'Marketing'),
+        ('general', 'General'),
+    ]
     instructor = models.ForeignKey(User, on_delete=models.CASCADE, related_name='courses')
     title = models.CharField(max_length=200)
-    description = models.TextField(blank=True)
+    description = models.TextField()
+    video = models.FileField(upload_to='course_videos/', blank=True, null=True)
+    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, default='general')
     created_at = models.DateTimeField(auto_now_add=True)
-    category = models.ForeignKey(Category, null=True, on_delete=models.SET_NULL, related_name='courses')
 
     def __str__(self):
         return self.title
